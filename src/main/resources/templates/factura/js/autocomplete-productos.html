@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="https://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+    <script type="text/javascript" th:fragment="javascript">
+        $(document).ready(function () {
+            $("#buscar_producto").autocomplete({
+                source: function (request,response) {
+                    $.ajax({
+                        url:"/factura/cargar-productos/" + request.term,
+                        dataType:"json",
+                        data:{
+                            term:request.term
+                        },
+                        success: function (data) { //se encarga de recibir los datos en formato json y se lo pasamos al auto
+                            response($.map(data,function (item){//se encarga de hacer un proceso por cada elemnto del arreglo(data)
+                                return {
+                                    value: item.id,
+                                    label: item.nombre,
+                                    precio: item.precio
+                                };
+                            }));
+                        },
+                    });
+                },
+                select: function (event,ui) {
+                    console.log(event);
+                    console.log(ui);
+                    //$("#buscar_producto").val(ui.item.label);
+                    if(itemsHelper.hasProducto(ui.item.value)){
+                        itemsHelper.incrementaCantidad(ui.item.value,ui.item.precio);
+                        return false; //solo incrementa la cantidad en uno
+                    }
+                    var linea=$("#plantillaItemsFactura").html(); //trae el contenido en este caso es un <tr>
+                    console.log(linea);
+                    linea = linea.replace(/{ID}/g,ui.item.value);
+                    console.log(linea);
+                    linea = linea.replace(/{NOMBRE}/g,ui.item.label);
+                    console.log(linea);
+                    linea = linea.replace(/{PRECIO}/g,ui.item.precio);
+                    console.log(linea);
+                    //despues llevamos la linea a la tabla cargarItemProductos
+                    $("#cargarItemProductos tbody").append(linea);
+                    itemsHelper.calcularImporte(ui.item.value,ui.item.precio,1);
+                    return false;
+                }
+            });
+            $("form").submit(function () {
+                $("#plantillaItemsFactura").remove();
+            })
+        }
+        );
+
+        const itemsHelper = {
+            calcularImporte : function (id,precio,cantidad){
+                console.log(id,precio,cantidad);
+                $("#total_importe_"+id).html(parseInt(precio)*parseInt(cantidad));
+                this.calcularGranTotal();
+            },
+            hasProducto: function (id) {
+                let resultado=false;
+                $('input[name="item_id[]"]').each(function () {
+                    if(parseInt(id) === parseInt($(this).val())){ //this.val : valor del input actual
+                        resultado = true;
+                    }
+                });
+                return resultado;
+            },
+            incrementaCantidad : function (id,precio) {
+                console.log($("#cantidad_"+id).val());
+                var cantidad = $("#cantidad_"+id).val() ? parseInt($("#cantidad_"+id).val()) : 0;
+                //var cantidad = parseInt($("#cantidad_"+id).val());
+                $("#cantidad_"+id).val(++cantidad);
+                this.calcularImporte(id,precio,cantidad); //esta cantidad esta aumentada en uno
+            },
+            eliminarLineaFactura : function (id){
+                $("#row_" + id).remove();
+                this.calcularGranTotal();
+            },
+            calcularGranTotal: function (){
+                var total = 0;
+                console.log("--------------------------------------");
+                $('span[id^="total_importe_"]').each(function () {
+                    console.count("Count  ");
+                    console.log("El this es : ",this);
+                    console.log("$(this).html() es : ",$(this).html());
+                    total+=parseInt($(this).html());
+                    });
+                $("#gran_total").html(total);
+            }
+        }
+    </script>
+</body>
+</html>

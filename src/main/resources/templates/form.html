@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="https://www.thymeleaf.org">
+<head th:replace="Layout/layout :: head"></head>
+
+<body>
+<header th:replace="Layout/layout :: header"></header>
+<div class="container py-4">
+    <div class="card bg-dark text-white">
+        <div class="card-header" th:text="${titulo}"></div>
+        <div class="card-body">
+    <div th:object="${cliente}" th:remove="tag" style="background-color:green">
+        <ul th:if="${#fields.hasErrors('*')}" class="alert alert-danger">
+        <li th:each="err:${#fields.errors('*')}" th:text="${err}"></li>
+        </ul>
+    </div>
+    <form th:action="@{/form}" th:object="${cliente}" th:method="POST" enctype="multipart/form-data">
+        <!--Este hidden sirve a la hora de editar un cliente ya que al envbiar el objeto de
+         nuevo para editar y no tener el campo id se marca como null-->
+        <!--<input type="hidden" th:field="*{id}"/>-->
+        <!--<input type="hidden" th:field="*{foto}"/>-->
+        <!--Estos 2 input:hidden ya no harian falta ya que ahora esta implementado el SessionAtributes("cliente")
+        Esto hace que se persistan los datos del cliente atraves de las request como el id y foto-->
+        <div class="form-group row">
+            <label class="col-sm-2 col-form-label">Nombre</label>
+            <div class="col-sm-6">
+            <input type="text" th:field="*{nombre}" class="form-control" th:errorclass="'form-control alert-danger'"/>
+            <small th:if="${#fields.hasErrors('nombre')}" th:errors="*{nombre}" class="form-text text-danger"></small>
+            </div>
+        </div>
+        <div class="form-group row">
+            <label class="col-sm-2 col-form-label"> Apellido </label>
+            <div class="col-sm-6">
+            <input type="text" th:field="*{apellido}" class="form-control" th:errorclass="'form-control alert-danger'"/>
+            <small th:if="${#fields.hasErrors('apellido')}" th:errors="*{apellido}" class="form-text text-danger"></small>
+            </div>
+        </div> <span></span>
+        <div class="form-group row">
+            <label class="col-sm-2 col-form-label"> Email </label>
+            <div class="col-sm-6">
+            <input type="email" th:field="*{email}" class="form-control" th:errorclass="'form-control alert-danger'"/>
+            <small th:if="${#fields.hasErrors('email')}" th:errors="*{email}" class="form-text text-danger"></small>
+            </div>
+        </div>
+        <div class="form-group row">
+            <label class="col-sm-2 col-form-label">Fecha </label> <!--th:field="*{createAt}" name="fecha"-->
+            <div class="col-sm-6">
+            <input type="date" th:field="*{createAt}" th:errorclass="'form-control alert-danger'"/>
+            <small th:if="${#fields.hasErrors('createAt')}" th:errors="*{createAt}" class="form-text text-danger"></small>
+            </div>
+        </div>
+        <div class="form-group row">
+            <label id="file" class="col-sm-2 col-form-label">Foto</label>
+            <div class="col-sm-6">
+                <input type="file"  class="form-control" name="file">
+            </div>
+        </div>
+        <div class="form-group row">
+            <div class="col-sm-6">
+            <input type="submit" class="form-control btn btn-secondary"/>
+            </div>
+        </div>
+    </form>
+    </div>
+    </div>
+</div>
+<footer th:replace="/Layout/layout :: footer"></footer>
+</body>
+</html>
