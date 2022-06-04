@@ -105,7 +105,7 @@ public class ClienteController {
         return "listar";
     }
 
-    @GetMapping("listar-rest")
+    @GetMapping("/listar-rest")
     public @ResponseBody ClienteList listarRest(){
         List<Cliente> clientes=iClienteService.findAll();
         return new ClienteList(clientes);

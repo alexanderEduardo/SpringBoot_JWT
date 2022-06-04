@@ -1,5 +1,7 @@
 package com.alex.springboot.app;
 
+import com.alex.springboot.app.auth.filter.JWTAuthenticationFilter;
+import com.alex.springboot.app.auth.filter.JWTAuthorizationFilter;
 import com.alex.springboot.app.auth.handler.LoginSuccessHandler;
 import com.alex.springboot.app.models.services.JpaUserDetailsService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,7 +12,7 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 
-import org.springframework.security.core.userdetails.User;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
@@ -58,13 +60,10 @@ public class SpringSecurityConfig  extends WebSecurityConfigurerAdapter{
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http.authorizeRequests()
-                .antMatchers("/","/css/**","/js/**","/images/**","/listar","/locale").permitAll()
+                .antMatchers("/","/css/**","/js/**","/images/**","/listar**","/locale").permitAll()
                 //.antMatchers("/ver/**","/uploads/**").hasAnyRole("USER")
-                //.antMatchers("/form/**").hasAnyRole("ADMIN")
-                //.antMatchers("/eliminar/**").hasAnyRole("ADMIN")
-                //.antMatchers("/factura/**").hasAnyRole("ADMIN")
                 .anyRequest().authenticated()
-                .and()
+                /*.and()
                     .formLogin()
                             .successHandler(successHandler)
                             .loginPage("/login")
@@ -72,6 +71,11 @@ public class SpringSecurityConfig  extends WebSecurityConfigurerAdapter{
                 .and()
                 .logout().permitAll()
                 .and()
-                .exceptionHandling().accessDeniedPage("/error_403");
+                .exceptionHandling().accessDeniedPage("/error_403")*/
+                .and()
+                .addFilter(new JWTAuthenticationFilter(authenticationManager()))
+                .addFilter(new JWTAuthorizationFilter(authenticationManager()))
+                .csrf().disable()
+                .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
     }
 }
