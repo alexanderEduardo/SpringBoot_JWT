@@ -1,34 +1,25 @@
 package com.alex.springboot.app.auth.filter;
 
-import com.alex.springboot.app.auth.SimpleGrantedAuthorityMixin;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.JwtException;
-import io.jsonwebtoken.Jwts;
+import com.alex.springboot.app.auth.service.JWTService;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
-
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.security.Key;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
+
 
 /** Se va ejecutar en cada request**/
 public class JWTAuthorizationFilter extends BasicAuthenticationFilter {
 
-    protected static final Key KEY= JWTAuthenticationFilter.SECRET_KEY;
-    public JWTAuthorizationFilter(AuthenticationManager authenticationManager) {
-
+    private final JWTService jwtService;
+    public JWTAuthorizationFilter(AuthenticationManager authenticationManager,JWTService jwtService) {
         super(authenticationManager);
+        this.jwtService=jwtService;
     }
 
     /** The entire call is wrapped in a try/catch block in case parsing or signature validation fails.**/
@@ -40,32 +31,16 @@ public class JWTAuthorizationFilter extends BasicAuthenticationFilter {
             return;
         }
 
-        boolean validoToken;
-        Claims token = null;
-        try {
-            token = Jwts.parserBuilder()
-                    .setSigningKey(KEY)
-                    .build()
-                    .parseClaimsJws(header.replace("Bearer ",""))
-                    .getBody();
-        validoToken = true;
-
-        }catch (JwtException | IllegalArgumentException e){
-            validoToken = false;
-        }
-
         UsernamePasswordAuthenticationToken authenticationToken=null;
-        if (validoToken){
-            String username = token.getSubject();
-            Object roles =token.get("authorities");
-            List<GrantedAuthority> authorities = Arrays.asList(new ObjectMapper()
-                    .addMixIn(SimpleGrantedAuthority.class, SimpleGrantedAuthorityMixin.class).readValue(roles.toString().getBytes(),SimpleGrantedAuthority[].class));
+        if (jwtService.validate(header)){
+
             System.out.println("---------Imprimiendo los roles-----------");
-            for (GrantedAuthority auth:authorities) {
+            for (GrantedAuthority auth:jwtService.getRoles(header)) {
                 System.out.println(auth.getAuthority());
             }
-            authenticationToken=new UsernamePasswordAuthenticationToken(username,null,authorities);
+            authenticationToken=new UsernamePasswordAuthenticationToken(jwtService.getUsername(header),null,jwtService.getRoles(header));
         }
+
         //SecurityContext se encarga de manejar el contexto de seguridad.Lo que hacemoes es asignar el obj authenticationToken dentro del contexto
         //Esto autentica al usuario dentro del request(peticion) ya que no estamos usando sesiones queda autenticado dentro de la solicitud del request
         SecurityContextHolder.getContext().setAuthentication(authenticationToken);

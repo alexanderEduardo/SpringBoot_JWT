@@ -74,7 +74,7 @@
     <img th:src="@{/images/springLogo2.png}" alt="Spring Logo" width="205px"/>
     <p sec:authorize="isAuthenticated()"> <!--Solo si esta logeado muestra estos datos-->
         Usuario Logeado : <span sec:authentication="name"></span>
-        | Roles : <span sec:authentication="principal.authorities"></span>
+        | Roles : <span sec:authentication="authorities"></span> <!--principal.authorities--> <!--authorities-->
     </p>
     <p>
         Powered by <a href="https://proyects.spring.io/spring-boot/">Spring Boot</a> y

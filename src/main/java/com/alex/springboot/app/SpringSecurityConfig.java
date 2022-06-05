@@ -3,6 +3,7 @@ package com.alex.springboot.app;
 import com.alex.springboot.app.auth.filter.JWTAuthenticationFilter;
 import com.alex.springboot.app.auth.filter.JWTAuthorizationFilter;
 import com.alex.springboot.app.auth.handler.LoginSuccessHandler;
+import com.alex.springboot.app.auth.service.JWTService;
 import com.alex.springboot.app.models.services.JpaUserDetailsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -29,10 +30,14 @@ public class SpringSecurityConfig  extends WebSecurityConfigurerAdapter{
     }
 
     private LoginSuccessHandler successHandler;
+
     @Autowired
     public void setLoginSuccessHandler(LoginSuccessHandler successHandler){
         this.successHandler=successHandler;
     }
+
+    @Autowired
+    private JWTService jwtService;
 
     @Autowired
     private DataSource dataSource;
@@ -73,8 +78,8 @@ public class SpringSecurityConfig  extends WebSecurityConfigurerAdapter{
                 .and()
                 .exceptionHandling().accessDeniedPage("/error_403")*/
                 .and()
-                .addFilter(new JWTAuthenticationFilter(authenticationManager()))
-                .addFilter(new JWTAuthorizationFilter(authenticationManager()))
+                .addFilter(new JWTAuthenticationFilter(authenticationManager(),jwtService))
+                .addFilter(new JWTAuthorizationFilter(authenticationManager(),jwtService))
                 .csrf().disable()
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
     }
